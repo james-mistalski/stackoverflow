@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS privilege;
 DROP TABLE IF EXISTS question;
-DROP TABLE IF EXISTS profile1;
+DROP TABLE IF EXISTS profile;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE  user (
@@ -22,7 +22,6 @@ CREATE TABLE profile (
 	repScore INT UNSIGNED NOT NULL,
 	PRIMARY KEY(profileId),
 	UNIQUE(userId),
-	INDEX(userId),
 	FOREIGN KEY(userId) REFERENCES user(userId)
 );
 
@@ -53,6 +52,6 @@ CREATE TABLE privilege (
 	INDEX(profileId),
 	INDEX(privilegeName),
 	INDEX(privilegeCategory),
-	INDEX(privilegeName, privilegeCat),
+	INDEX(privilegeName, privilegeCategory),
 	FOREIGN KEY(profileId) REFERENCES profile(profileId)
 );
