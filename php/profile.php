@@ -34,6 +34,12 @@ class Profile
 	 * rep score for the Profile;
 	 **/
 	private $repScore;
+	/**
+	 * create __toString() to find profileID
+	 **/
+	public function __toString() {
+		return "$this->profileId";
+}
 
 	/**
 	 * constructor for Profile
@@ -469,10 +475,9 @@ public static function  getProfileByfirstName(&$mysqli, $firstName) {
 		throw(new mysqli_sql_exception("Unable to get result set"));
 	}
 
-	// since this is not a unique field, this can return 0, 1, or many results. So...
-	// 1) if there's a result, we can make it into a Profile object normally
-	// 2) if there's more than 1 result, we can make all into Profile objects
-	// 3) if there's no result, we can just return null
+	// since this is not a unique field, this can return many results. So...
+	// 1) if there's more than 1 result, we can make all into Profile objects
+	// 2) if there's no result, we can just return null
 	while(($row = $result->fetch_assoc()) !== null); // fetch_assoc() returns a row as an associative array
 
 	// convert the associative array to a Profile
