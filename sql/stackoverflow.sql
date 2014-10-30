@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS privilege;
 DROP TABLE IF EXISTS question;
 DROP TABLE IF EXISTS profile;
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS user;
 
 CREATE TABLE  user (
 	userId INT UNSIGNED AUTO_INCREMENT NOT NULL,
@@ -21,6 +21,8 @@ CREATE TABLE profile (
 	lastName VARCHAR(32) NOT NULL,
 	repScore INT UNSIGNED NOT NULL,
 	PRIMARY KEY(profileId),
+	INDEX(firstName),
+	INDEX(lastName),
 	UNIQUE(userId),
 	FOREIGN KEY(userId) REFERENCES user(userId)
 );

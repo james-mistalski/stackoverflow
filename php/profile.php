@@ -37,9 +37,8 @@ class Profile
 	/**
 	 * create __toString() to find profileID
 	 **/
-	public function __toString() {
-		return "$this->profileId";
-}
+
+
 
 	/**
 	 * constructor for Profile
@@ -78,6 +77,7 @@ class Profile
 	{
 		return ($this->profileId);
 	}
+
 
 	/**
 	 * sets the value of profile id
@@ -269,9 +269,7 @@ class Profile
 	 * @param resource $mysqli pointer to mySQL connection, by reference
 	 * @throws mysqli_sql_exception when mySQL related errors occur
 	 **/
-
-	public function insert(&$mysqli)
-	{
+		public function insert(&$mysqli) {
 
 		// handle degenerate cases
 		if(gettype($mysqli) !== "object" || get_class($mysqli) !== "mysqli") {
@@ -286,7 +284,7 @@ class Profile
 		// create query template
 		$query = "INSERT INTO profile(userId, firstName, middleName, lastName, repScore) VALUES(?, ?, ?, ?, ?)";
 		$statement = $mysqli->prepare($query);
-		if(statement === false) {
+		if($statement === false) {
 			throw(new mysqli_sql_exception("Unable to prepare statement"));
 		}
 
@@ -300,6 +298,7 @@ class Profile
 
 		// execute the statement
 		if($statement->execute() === false) {
+			echo $statement->error . "<br />";
 			throw(new mysqli_sql_exception("Unable to execute mySQL statement"));
 		}
 
