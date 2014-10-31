@@ -14,4 +14,22 @@ $pbkdf2Hash				= hash_pbkdf2("sha512", $clearTextPassword, $salt, 2048, 128);
 // now that PHP knows what to build, we use the new keyword to create an object
 // the new keyword automatically runs the __construct method
 $profile = new User(null, "emal@email.org", "password", "salt", "auth token");
+
+// pesky mysqli doesn't throw exceptions by default, this will override this and throw exceptions!
+mysqli_report(MYSQLI_REPORT_STRICT) ;
+
+// OK now we can "try" to connect to mySQL - get it - it's a pun!
+try {
+	// parameters hostname, username, password, database
+	$mysqli = new mysqli("local_host", "store_james", "deepdive", "store_james");
+} catch(mysqli_sql_exception $sqlException) {
+	echo "Unable to connect to mySQL:" . $sqlException->getMessage();
+}
+
+// if we got here, we did connect! so we'll go ahead and insert this object
+$user->insert(mysqli);
+
+// var_dump to look at the resulting object
+var_dump($user);
+
 ?>
