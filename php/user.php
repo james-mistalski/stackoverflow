@@ -21,7 +21,7 @@ class User {
 	 */
 	private $password;
 	/**
-	 *
+	 * salt used in the PBKDF2 hash
 	 */
 	private $salt;
 	/**
@@ -32,9 +32,9 @@ class User {
 	/**
 	 * constructor for User
 	 *
-	 * @param mixed $mixed $newUserId user id (or null if new object)
+	 * @param mixed $newUserId user id (or null if new object)
 	 * @param string $newEmail email
-	 * @param string $nwPassword PBKDF2 hash of the password
+	 * @param string $newPassword PBKDF2 hash of the password
 	 * @param string $newSalt salt used in the PBKDF2 hash
 	 * @mixed $newAuthenticationToken authentication token used in new accounts and password resets (or null if active User)
 	 * @throws UnexpectedValueException when a parameter is of the wrong type
@@ -52,7 +52,7 @@ class User {
 			throw(new UnexpectedValueException("Unable to construct User", 0, $unexpectedValue));
 		} catch(RangeException $range) {
 			// rethrow to the caller
-			throw(new range("Unable to construct User", 0, $range));
+			throw(new RangeException("Unable to construct User", 0, $range));
 
 		}
 	}
@@ -130,7 +130,7 @@ class User {
 		// verify the password is 128 hex characters
 		$newPassword	= trim($newPassword);
 		$newPassword	= strtolower($newPassword);
-		$filterOptions	= array("options" => array("regexp" => "/^[da-f]{128}$/"));
+		$filterOptions	= array("options" => array("regexp" => "/^[\da-f]{64}$/"));
 		if(filter_var($newPassword, FILTER_VALIDATE_REGEXP, $filterOptions) === false) {
 			throw(new RangeException("password is not a valid SHA512 PBKDF2 hash"));
 		}
@@ -149,7 +149,7 @@ class User {
 		// verify the salt is 64 hex characters
 		$newSalt	= trim($newSalt);
 		$newSalt	= strtolower($newSalt);
-		$filterOptions = array("options" => array("regexp" => "/^[da-f]{64}$/"));
+		$filterOptions = array("options" => array("regexp" => "/^[\da-f]{64}$/"));
 		if(filter_var($newSalt, FILTER_VALIDATE_REGEXP, $filterOptions) === false) {
 			throw(new RangeException("salt is not 64 hexadecimal bytes"));
 		}
