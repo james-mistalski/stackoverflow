@@ -19,7 +19,7 @@ class User {
 	/**
 	 * SHA512 PBKDF2 hash of the password
 	 */
-	private $password;
+	private $passwordHash;
 	/**
 	 * salt used in the PBKDF2 hash
 	 */
@@ -27,26 +27,26 @@ class User {
 	/**
 	 * authentication token used in new accounts and password resets
 	 */
-	private $authenticationToken;
+	private $authToken;
 
 	/**
 	 * constructor for User
 	 *
 	 * @param mixed $newUserId user id (or null if new object)
 	 * @param string $newEmail email
-	 * @param string $newPassword PBKDF2 hash of the password
+	 * @param string $newPasswordHash PBKDF2 hash of the password
 	 * @param string $newSalt salt used in the PBKDF2 hash
-	 * @mixed $newAuthenticationToken authentication token used in new accounts and password resets (or null if active User)
+	 * @mixed $newAuthToken authentication token used in new accounts and password resets (or null if active User)
 	 * @throws UnexpectedValueException when a parameter is of the wrong type
 	 * @throws RangeException when a parameter is invalid
 	 **/
-	public function __construct($newUserId, $newEmail, $newPassword, $newSalt, $newAuthenticationToken) {
+	public function __construct($newUserId, $newEmail, $newPasswordHash, $newSalt, $newAuthToken) {
 		try {
 			$this->setUserId($newUserId);
 			$this->setEmail($newEmail);
-			$this->setPassword($newPassword);
+			$this->setPasswordHash($newPasswordHash);
 			$this->setSalt($newSalt);
-			$this->setAuthenticationToken($newAuthenticationToken);
+			$this->setAuthToken($newAuthToken);
 		} catch(UnexpectedValueException $unexpectedValue) {
 			// rethrow to the caller
 			throw(new UnexpectedValueException("Unable to construct User", 0, $unexpectedValue));
@@ -100,6 +100,16 @@ class User {
 	 *
 	 * @return string value of email
 	 */
+	public function getEmail() {
+		return($this->email);
+	}
+
+	/**
+	 * sets the value of email
+	 *
+	 * @param string $newEmail email
+	 * @throws UnexpectedValueException if the input doesn't appear to be an Email
+	 */
 	public function setEmail($newEmail) {
 		// sanitize the Email as a likely Email
 		$newEmail = trim($newEmail);
@@ -116,27 +126,27 @@ class User {
 	 *
 	 * @return string value of password
 	 */
-	public function getPassword() {
-		return($this->password);
+	public function getPasswordHash() {
+		return($this->passwordHash);
 	}
 
 	/**
-	 * sets the value of password
+	 * sets the value of passwordHash
 	 *
-	 * @param string $newPassword SHA512 PDKDF2 hash of the password
+	 * @param string $newPasswordHash SHA512 PDKDF2 hash of the password
 	 * @throws RangeException when input isn't a valid SHA512 PBKDF2 hash
 	*/
-	public function setPassword($newPassword) {
-		// verify the password is 128 hex characters
-		$newPassword	= trim($newPassword);
-		$newPassword	= strtolower($newPassword);
-		$filterOptions	= array("options" => array("regexp" => "/^[\da-f]{64}$/"));
-		if(filter_var($newPassword, FILTER_VALIDATE_REGEXP, $filterOptions) === false) {
-			throw(new RangeException("password is not a valid SHA512 PBKDF2 hash"));
+	public function setPasswordHash($newPasswordHash) {
+		// verify the passwordHash is 128 hex characters
+		$newPasswordHash	= trim($newPasswordHash);
+		$newPasswordHash	= strtolower($newPasswordHash);
+		$filterOptions	= array("options" => array("regexp" => "/^[\da-f]{128}$/"));
+		if(filter_var($newPasswordHash, FILTER_VALIDATE_REGEXP, $filterOptions) === false) {
+			throw(new RangeException("passwordHash is not a valid SHA512 PBKDF2 hash"));
 		}
 
 		// finally, take the password out of quarantine
-		$this->password = $newPassword;
+		$this->passwordHash = $newPasswordHash;
 	}
 
 	/**
@@ -164,23 +174,23 @@ class User {
 	 * @param mixed $newAuthenticationToken authentication token (32 hexadecimal bytes) (or null if active User)
 	 * @throws RangeException when input isn't 32 hexadecimal bytes
 	 */
-	public function setAuthenticationToken($newAuthenticationToken) {
-		// zeroth, set allow the authentication token to be null if an active oject
-		if($newAuthenticationToken === null) {
-			$this->authenticationToken = null;
+	public function setAuthToken($newAuthToken) {
+		// zeroth, set allow the authentication token to be null if an active object
+		if($newAuthToken === null) {
+			$this->authToken = null;
 			return;
 		}
 
 		// verify the authentication token is 32 hex characters
-		$newAuthenticationToken	= trim($newAuthenticationToken);
-		$newAuthenticationToken	= strtolower($newAuthenticationToken);
-		$filterOptions = array("options" => array("regexp" => "/^[da-f]{32}$/"));
-		if(filter_var($newAuthenticationToken, FILTER_VALIDATE_REGEXP, $filterOptions) === false) {
-			throw(new RangeException("authentication token is not 32 hexadecimal bytes"));
+		$newAuthToken	= trim($newAuthToken);
+		$newAuthToken	= strtolower($newAuthToken);
+		$filterOptions = array("options" => array("regexp" => "/^[\da-f]{32}$/"));
+		if(filter_var($newAuthToken, FILTER_VALIDATE_REGEXP, $filterOptions) === false) {
+			throw(new RangeException("authToken is not 32 hexadecimal bytes"));
 		}
 
 		// finally, take the authentication token out of quarantine
-		$this->authenticationToken = $newAuthenticationToken;
+		$this->authToken = $newAuthToken;
 	}
 
 	/**
@@ -201,15 +211,15 @@ class User {
 		}
 
 		// create query template
-		$query		= "INSERT INTO user(email, password, salt, authenticationToken) VALUES(?, ?, ?, ?)";
+		$query		= "INSERT INTO user(email, passwordHash, salt, authToken) VALUES(?, ?, ?, ?)";
 		$statement	= $mysqli->prepare($query);
 		if($statement === false) {
 			throw(new mysqli_sql_exception("Unable to prepare statement"));
 		}
 
 		// bind the member variables to the place holders in the template
-		$wasClean = $statement->bind_param("ssss", $this->email,	$this->password,
-																 $this->salt,	$this->authenticationToken);
+		$wasClean = $statement->bind_param("ssss", $this->email,	$this->passwordHash,
+																 $this->salt,	$this->authToken);
 		if($wasClean === false) {
 			throw(new mysqli_sql_exception("Unable to bind parameters"));
 		}
@@ -236,7 +246,7 @@ class User {
 		}
 
 		// enforce the userId is not null (.e., don't delete a user that hasn't been inserted)
-		if($this>userId === null) {
+		if($this->userId === null) {
 			throw(new mysqli_sql_exception("Unable to delete a user that does not exist"));
 		}
 
@@ -277,15 +287,15 @@ class User {
 		}
 
 		// create the query template
-		$query		= "UPDATE user SET email = ?, password = ?, salt = ?, authenticationToken = ? WHERE userId = ?";
+		$query		= "UPDATE user SET email = ?, passwordHash = ?, salt = ?, authToken = ? WHERE userId = ?";
 		$statement	= $mysqli->prepare($query);
 		if($statement === false) {
 			throw(new mysqli_sql_exception("Unable to prepare statement"));
 		}
 
 		// bind the member variables to the place holders in the template
-		$wasClean = $statement->bind_param("ssssi",	$this->email,	$this->password,
-																	$this->salt,	$this->authenticationToken,
+		$wasClean = $statement->bind_param("ssssi",	$this->email,	$this->passwordHash,
+																	$this->salt,	$this->authToken,
 																	$this->userId);
 		if($wasClean === false) {
 			throw(new mysqli_sql_exception("Unable to bind parameters"));
@@ -303,7 +313,7 @@ class User {
 	 * @param resource $mysqli pointer to mySQL connection, by reference
 	 * @param string $email email to search fo
 	 * @return mixed User found or null if not found
-	 * @throws mysqli_sql_exception when mySQL related errors ocur
+	 * @throws mysqli_sql_exception when mySQL related errors occur
 	 */
 	public static function getUserByEmail(&$mysqli, $email) {
 		// handle degenerate cases
@@ -316,7 +326,7 @@ class User {
 		$email = filter_var($email, FILTER_SANITIZE_EMAIL);
 
 		//create query template
-		$query		= "SELECT userId, email, password, salt, authenticationToken FROM user WHERE email = ?";
+		$query		= "SELECT userId, email, passwordHash, salt, authToken FROM user WHERE email = ?";
 		$statement	= $mysqli->prepare($query);
 		if($statement === false) {
 			throw(new mysqli_sql_exception("Unable to prepare statement"));
@@ -328,7 +338,7 @@ class User {
 			throw(new mysqli_sql_exception("Unable to bind parameters"));
 		}
 
-		// execute the statemnet
+		// execute the statement
 		if($statement->execute() === false) {
 			throw(new mysqli_sql_exception("Unable to execute mySQL statement"));
 		}
@@ -347,7 +357,7 @@ class User {
 		// convert the associative array to a User
 		if($row !== null) {
 			try {
-				$user = new User($row["userId"], $row["email"], $row["password"], $row["salt"], $row["authenticationToken"]);
+				$user = new User($row["userId"], $row["email"], $row["passwordHash"], $row["salt"], $row["authToken"]);
 			}
 			catch(Exception $exception) {
 				// if the row couldn't be converted, rethrow it

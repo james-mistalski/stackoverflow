@@ -2,6 +2,9 @@
 // first require the SimpleTest framework
 require_once("/usr/lib/php5/simpletest/autorun.php");
 
+// then require the class under scrutiny
+require_once("../php/user.php");
+
 // the UserTest is a container for all our tests
 class UserTest extends UnitTestCase {
 	// variable to hold the mySQL connection

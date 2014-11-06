@@ -23,10 +23,10 @@ class ProfileTest extends UnitTestCase {
 	// connect to mySQL
 	public function setUp() {
 		mysqli_report(MYSQLI_REPORT_STRICT);
-		$this->mysqli - new mysqli("localhost", "store_james", "deepdive", "store_james");
+		$this->mysqli = new mysqli("localhost", "store_james", "deepdive", "store_james");
 	}
 
-	//rearDown() is a method that is run after each test
+	// tearDown() is a method that is run after each test
 	// here, we use it to delete the test record and disconnect from mySQL
 	public function tearDown() {
 		// delete the user if we can
